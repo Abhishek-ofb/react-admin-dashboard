@@ -1,6 +1,18 @@
-import React from "react";
+import React, { useState } from "react";
 
 export default function LiveCallMonitor({ calls }) {
+  const [selectedCall, setSelectedCall] = useState(null);
+
+  // Dummy conversation (string instead of array)
+  const conversation =
+    "Customer: Hello, I need help with my account.\n" +
+    "Agent: Sure, I can assist you. Could you give me your ID?\n" +
+    "Customer: Yes, it's 12345.\n" +
+    "Agent: Thank you. I see the issue, let me resolve it for you.";
+
+  const summary =
+    "Customer called regarding account access issue. Agent verified details and provided support. Sentiment remained neutral with slight positive trend.";
+
   return (
     <div className="bg-white p-4 rounded-lg shadow">
       <div className="flex items-center justify-between mb-3">
@@ -15,28 +27,105 @@ export default function LiveCallMonitor({ calls }) {
               <th className="pb-2">Agent</th>
               <th className="pb-2">Customer</th>
               <th className="pb-2">Sentiment</th>
-              <th className="pb-2">Confidence</th>
               <th className="pb-2">Duration</th>
             </tr>
           </thead>
           <tbody>
-            {calls.map(c => (
-              <tr key={c.call_id} className="border-t">
+            {calls.map((c) => (
+              <tr
+                key={c.call_id}
+                className="border-t hover:bg-slate-50 cursor-pointer transition"
+                onClick={() => setSelectedCall(c)}
+              >
                 <td className="py-2 font-medium">{c.call_id}</td>
                 <td className="py-2">{c.agent}</td>
                 <td className="py-2">{c.customer}</td>
                 <td className="py-2">
-                  <span className={`px-2 py-1 rounded text-white ${
-                    c.sentiment === 'positive' ? 'bg-emerald-500' : c.sentiment === 'negative' ? 'bg-rose-500' : 'bg-amber-500'
-                  }`}>{c.sentiment}</span>
+                  <span
+                    className={`px-2 py-1 rounded text-white ${
+                      c.sentiment === "positive"
+                        ? "bg-emerald-500"
+                        : c.sentiment === "negative"
+                        ? "bg-rose-500"
+                        : "bg-amber-500"
+                    }`}
+                  >
+                    {c.sentiment}
+                  </span>
                 </td>
-                <td className="py-2">{Math.round(c.confidence*100)}%</td>
-                <td className="py-2">{Math.floor(c.duration_sec/60)}m {c.duration_sec%60}s</td>
+
+                <td className="py-2">
+                  {Math.floor(c.duration_sec / 60)}m {c.duration_sec % 60}s
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+
+      {/* Modal */}
+      {selectedCall && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white w-full max-w-4xl rounded-lg shadow-lg p-6 relative animate-scaleIn">
+            {/* Close Button */}
+            <button
+              className="absolute top-3 right-3 text-slate-400 hover:text-slate-600 text-xl"
+              onClick={() => setSelectedCall(null)}
+            >
+              ✕
+            </button>
+
+            {/* Header */}
+            <h3 className="text-2xl font-semibold mb-4">Call Details</h3>
+
+            <div className="grid grid-cols-2 gap-6">
+              {/* Left: Call Info */}
+              <div className="space-y-2">
+                <p>
+                  <strong>Call ID:</strong> {selectedCall.call_id}
+                </p>
+                <p>
+                  <strong>Agent:</strong> {selectedCall.agent}
+                </p>
+                <p>
+                  <strong>Customer:</strong> {selectedCall.customer}
+                </p>
+                <p>
+                  <strong>Sentiment:</strong>{" "}
+                  <span
+                    className={`px-2 py-1 rounded text-white ${
+                      selectedCall.sentiment === "positive"
+                        ? "bg-emerald-500"
+                        : selectedCall.sentiment === "negative"
+                        ? "bg-rose-500"
+                        : "bg-amber-500"
+                    }`}
+                  >
+                    {selectedCall.sentiment}
+                  </span>
+                </p>
+                <p>
+                  <strong>Duration:</strong>{" "}
+                  {Math.floor(selectedCall.duration_sec / 60)}m{" "}
+                  {selectedCall.duration_sec % 60}s
+                </p>
+              </div>
+
+              {/* Right: Conversation + Summary */}
+              <div className="flex flex-col space-y-4">
+                <div className="bg-slate-50 p-3 rounded-lg h-48 overflow-y-auto whitespace-pre-line text-sm">
+                  {conversation}
+                </div>
+
+                <div className="bg-slate-100 p-3 rounded-lg">
+                  <h4 className="font-semibold mb-1">Summary</h4>
+                  <p className="text-sm text-slate-700">{summary}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -13,6 +13,7 @@ export default function Dashboard(){
   const total = calls.length;
   const positives = calls.filter(c=>c.sentiment==='positive').length;
   const negatives = calls.filter(c=>c.sentiment==='negative').length;
+    const neutrals = calls.filter(c=>c.sentiment==='negative').length;
   const avgConfidence = total ? Math.round((calls.reduce((s,c)=>s+c.confidence,0)/total)*100) : 0;
 
   return (
@@ -25,7 +26,7 @@ export default function Dashboard(){
             <StatsCard title="Active Calls" value={total} delta="+2%"> </StatsCard>
             <StatsCard title="Positive Calls" value={positives} delta="+8%"> </StatsCard>
             <StatsCard title="Negative Calls" value={negatives} delta="-3%"> </StatsCard>
-            <StatsCard title="Avg Confidence" value={`${avgConfidence}%`}> </StatsCard>
+            <StatsCard title="Neutral Calls" value={neutrals} delta="-3%"> </StatsCard>
           </div>
 
           <div className="grid grid-cols-3 gap-4">
