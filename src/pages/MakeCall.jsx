@@ -2,27 +2,77 @@ import React, { useState } from "react";
 import Sidebar from "../components/Sidebar";
 import Header from "../components/Header";
 import { Phone, PhoneOff } from "lucide-react";
+import { API_BASE_URL, API_HEADERS } from "../config/constants";
 
 export default function MakeCallPage() {
   const [phone, setPhone] = useState("");
   const [status, setStatus] = useState("");
   const [isCalling, setIsCalling] = useState(false);
+  const [callerId, setCallerId] = useState(null);
+  const [showPopup, setShowPopup] = useState(false);
 
-  const handleCall = () => {
+  const handleCall = async () => {
     if (!phone) {
       setStatus("⚠️ Please enter a phone number");
       return;
     }
+
     setIsCalling(true);
     setStatus(`📞 Calling ${phone}...`);
-    setTimeout(() => {
-      setStatus(`✅ Call to ${phone} connected successfully!`);
-    }, 2000);
+
+    try {
+      const res = await fetch(
+        `${API_BASE_URL}/call/new?customerMobileNumber=${encodeURIComponent(
+          phone
+        )}`,
+        {
+          method: "POST",
+          headers: {
+            ...API_HEADERS,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+
+      const data = await res.text(); // callerSId returned
+      setCallerId(data);
+      setStatus(`✅ Call initiated successfully! Caller ID: ${data}`);
+
+      // Show popup after 30 seconds
+      setTimeout(() => {
+        setShowPopup(true);
+      }, 15000);
+    } catch (err) {
+      console.error(err);
+      setStatus(`❌ Failed to make call: ${err.message}`);
+    } finally {
+      setIsCalling(false);
+    }
   };
 
   const handleEndCall = () => {
     setIsCalling(false);
     setStatus("❌ Call ended.");
+  };
+
+  const handleFetchDetails = async () => {
+    if (!callerId) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/call/fetch/${callerId}`, {
+        method: "GET",
+        headers: API_HEADERS,
+      });
+      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+      const msg = await res.text();
+      setStatus(`📋 ${msg}`);
+    } catch (err) {
+      console.error(err);
+      setStatus(`❌ Failed to fetch call details: ${err.message}`);
+    } finally {
+      setShowPopup(false);
+    }
   };
 
   return (
@@ -87,6 +137,35 @@ export default function MakeCallPage() {
                 }`}
               >
                 {status}
+              </div>
+            )}
+
+            {/* Popup Modal */}
+            {showPopup && (
+              <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
+                <div className="bg-white p-6 rounded-xl shadow-lg w-96 space-y-4">
+                  <h3 className="text-lg font-bold text-slate-800">
+                    Fetch Call Details?
+                  </h3>
+                  <p className="text-sm text-slate-600">
+                    Do you want to fetch analysis for Caller ID:{" "}
+                    <span className="font-mono">{callerId}</span>?
+                  </p>
+                  <div className="flex justify-end gap-3">
+                    <button
+                      onClick={() => setShowPopup(false)}
+                      className="px-4 py-2 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleFetchDetails}
+                      className="px-4 py-2 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700"
+                    >
+                      Fetch
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
           </div>

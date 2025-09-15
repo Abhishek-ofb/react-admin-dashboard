@@ -1,14 +1,15 @@
 import React from "react";
 
-export default function StatsCard({ title, value, delta, children }) {
+export default function StatsCard({ title, value, onClick, active, color }) {
   return (
-    <div className="bg-white p-4 rounded-lg shadow">
-      <div className="text-sm text-slate-500">{title}</div>
-      <div className="mt-2 flex items-center justify-between">
-        <div className="text-2xl font-bold">{value}</div>
-        {delta && <div className="text-sm text-green-600">{delta}</div>}
-      </div>
-      {children}
+    <div
+      onClick={onClick}
+      className={`p-4 rounded-lg shadow cursor-pointer transition text-white
+        ${color} 
+        ${active ? "ring-2 ring-offset-2 ring-blue-100" : ""}`}
+    >
+      <h3 className="text-sm font-medium">{title}</h3>
+      <p className="text-2xl font-bold">{value}</p>
     </div>
   );
 }
